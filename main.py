@@ -16,6 +16,7 @@ import csv
 
 current_millis = lambda: int(round(time.time() * 1000))
 
+#in millis 
 POLL_INTERVAL = 3000
 
 def initPins():
@@ -33,14 +34,13 @@ def main():
     millis = start
     while(1):
         #data willl be collected every few seconds i suppose
-        #Dosent seem to out put to the csv file who knows  ? ? ? ?! ??
         if(current_millis() > (POLL_INTERVAL + millis)):
             temp = getTemp()
             date = getDateTime()
             ph = getPH()
             wLevel = getWLevel()
             status = getStatusB()
-            toCSV(date,ph,temp,status,wLevel)
+            toCSV(date,ph,temp,status,wLevel,0)
             millis = current_millis()
             
         else:
@@ -60,20 +60,23 @@ def getWLevel():
     return 0.75
 def setStatus():
     pass
+def setTemp():
+    pass
 
 
 def getDateTime():
+    # Done
     # completed will get currrent date time and output to correct format
     now = datetime.now()
     dt_string = now.strftime("%Y%d%m%H%M%S")
     return dt_string
 
-def toCSV(dt_string, phVal, tempVal, statusB, wLevel):
-    #setting the file to change by the day
+def toCSV(dt_string, phVal, tempVal, statusB, wLevel,setTemp):
+    #TODO replace this function with postman post requests
     with open('output'+datetime.now().strftime("%Y%d")+'.csv', 'a', newline='') as csvfile:
-        fieldnames = ['date_time', 'temp', 'ph', 'status','wlevel']
+        fieldnames = ['date_time', 'temp', 'ph', 'status','wlevel','setTemp']
         writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
-        writer.writerow({'date_time':dt_string, 'temp' : tempVal, 'ph' : phVal, 'status' : statusB,'wlevel' : wLevel})
+        writer.writerow({'date_time':dt_string, 'temp' : tempVal, 'ph' : phVal, 'status' : statusB,'wlevel' : wLevel, 'setTemp' : setTemp})
     
         
     
