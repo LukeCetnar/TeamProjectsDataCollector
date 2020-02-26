@@ -10,7 +10,18 @@
 from datetime import datetime
 import time
 import csv
-#import RPi.GPIO as GPIO
+import requests 
+# https://pypi.org/project/smbus2/Library for I2C
+# https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
+
+
+
+# defining the api-endpoint  
+API_ENDPOINT = "http://pastebin.com/api/api_post.php"
+  
+# your API key here 
+API_KEY = "XXXXXXXXXXXXXXXXX"
+  
 
 
 
@@ -58,9 +69,9 @@ def getStatusB():
     return '0x0B'
 def getWLevel():
     return 0.75
-def setStatus():
+def setStatus(status):
     pass
-def setTemp():
+def setTemp(temp):
     pass
 
 
@@ -71,15 +82,18 @@ def getDateTime():
     dt_string = now.strftime("%Y%d%m%H%M%S")
     return dt_string
 
-def toCSV(dt_string, phVal, tempVal, statusB, wLevel,setTemp):
-    #TODO replace this function with postman post requests
-    with open('output'+datetime.now().strftime("%Y%d")+'.csv', 'a', newline='') as csvfile:
-        fieldnames = ['date_time', 'temp', 'ph', 'status','wlevel','setTemp']
-        writer = csv.DictWriter(csvfile, delimiter=',', fieldnames=fieldnames)
-        writer.writerow({'date_time':dt_string, 'temp' : tempVal, 'ph' : phVal, 'status' : statusB,'wlevel' : wLevel, 'setTemp' : setTemp})
-    
-        
-    
+def postData(dt_string, phVal, tempVal, statusB, wLevel,setTemp):
+    # data to be sent to api 
+    data = {'date_time':dt_string, 'temp' : tempVal, 'ph' : phVal, 'status' : statusB,'wlevel' : wLevel} 
+    r = requests.post(url = API_ENDPOINT, data = data)
+
+def getData():
+    r = requests.get(url = URL, params = PARAMS) 
+    # extracting data in json format 
+    data = r.json()
 
 
+
+
+    
 main()
