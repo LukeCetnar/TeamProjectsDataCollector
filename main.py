@@ -14,6 +14,21 @@ import requests
 import RPi.GPIO as GPIO
 from smbus2 import SMBus 
 import Adafruit_ADS1x15
+import os
+import glob
+import time
+ 
+os.system('modprobe w1-gpio')
+os.system('modprobe w1-therm')
+base_dir = '/sys/bus/w1/devices/'
+device_folder = glob.glob(base_dir + '28*')[0]
+device_file = device_folder + '/w1_slave'
+ 
+def read_temp_raw():
+    f = open(device_file, 'r')
+    lines = f.readlines()
+    f.close()
+    return lines
 # https://pypi.org/project/smbus2/Library for I2C
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
 #https://pi4j.com/1.2/pins/model-3b-plus-rev1.html pinout 
@@ -42,6 +57,26 @@ import Adafruit_ADS1x15
 #       37##38
 #       39##40
     
+
+GAIN = 1
+#pick a different gain to change the range of voltages that are read:
+#  - 2/3 = +/-6.144V
+#  -   1 = +/-4.096V
+#  -   2 = +/-2.048V
+#  -   4 = +/-1.024V
+#  -   8 = +/-0.512V
+#  -  16 = +/-0.256V
+ voltages = {
+    1: 4.096
+    2: 6.144
+    3: 6.144
+    4: 1.024
+    8: 0.512
+    16: 0.256
+        }
+def scaleVoltage():
+        
+    return switcher.get(GAIN,0)/
 
 
 # defining the api-endpoint  
@@ -88,26 +123,45 @@ def getDateTime():
 def getStatusB():
     status  = 0X00
     status |= 1 if GPIO.input(11) == GPIO.HIGH else 0# heater
-    status |= 2 if GPIO.input(12) == GPIO.HIGH else 0# heater
-    status |= 4 if GPIO.input(13) == GPIO.HIGH else 0# heater
-    status |= 8 if GPIO.input(14) == GPIO.HIGH else 0# heater
+    status |= 2 if GPIO.input(12) == GPIO.HIGH else 0# lights
+    status |= 4 if GPIO.input(13) == GPIO.HIGH else 0# pump
+    status |= 8 if GPIO.input(14) == GPIO.HIGH else 0# solenoid
     return status     
     
     
 def setStatus(status):
-    pass
+    GPIO.output(11,GPIO.HIGH) if status && 0x01 else GPIO.output(11,GPIO.LOW)
+    GPIO.output(12,GPIO.HIGH) if status && 0x02 else GPIO.output(12,GPIO.LOW)
+    GPIO.output(13,GPIO.HIGH) if status && 0x04 else GPIO.output(13,GPIO.LOW)
+    GPIO.output(14,GPIO.HIGH) if status && 0x08 else GPIO.output(14,GPIO.LOW)
     
 def setTemp(temp):
+    base_dir = '/sys/bus/w1/devices/'
+    device_folder = glob.glob(base_dir + '28*')[0]
+    device_file = device_folder + '/w1_slave'
     pass
+    
+def getTemp():
+    lines = read_temp_raw()
+        while lines[0].strip()[-3:] != 'YES':
+            time.sleep(0.2)
+            lines = read_temp_raw()
+        equals_pos = lines[1].find('t=')
+        if equals_pos != -1:
+            temp_string = lines[1][equals_pos+2:]
+            temp_c = float(temp_string) / 1000.0
+            return temp_c
 
 def I2CRead():
     adc = Adafruit_ADS1x15.ADS1115()
     values = [0]*4
     for i in range(4):
         # Read the specified ADC channel using the previously set gain value.
-        values[i] = adc.read_adc(i, gain=1)
-    print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*values))
-    return [0,0,0]
+        values[i] = adc.read_adc(i, gain=GAIN)
+    #print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*values))
+    value[0]*14/32767
+    value[2]/32767
+    return [value[0],value[2]]
 
 
 
@@ -121,6 +175,9 @@ def getData():
     # extracting data in json format 
     data = r.json()
 
+
+
+
 def main():
     initPins()
     #get inital time
@@ -130,14 +187,15 @@ def main():
         #data willl be collected every few seconds i suppose
         #REDO half of them need to be placed into a serial read functions sontosnds;njkn
         if(current_millis() > (POLL_INTERVAL + millis)):
-            [temp, ph,wlevel] = I2CRead()
+            [ph,wlevel] = I2CRead()
+            temp = getTemp()
             date = getDateTime()
             status = getStatusB()
             #postData(date,ph,temp,status,wLevel,0)#implment later
             millis = current_millis()
             
+            time.sleep(0.01)
         else:
-            time.sleep(0.001)
             
             
             
