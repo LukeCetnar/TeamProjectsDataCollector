@@ -11,7 +11,8 @@ from datetime import datetime
 import time
 import csv
 import requests
-import RPi.GPIO as GPIO 
+import RPi.GPIO as GPIO
+from smbus2 import SMBus, ic_msg 
 # https://pypi.org/project/smbus2/Library for I2C
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
 #https://pi4j.com/1.2/pins/model-3b-plus-rev1.html pinout 
@@ -50,11 +51,12 @@ API_KEY = "XXXXXXXXXXXXXXXXX"
   
 
     #INPUT_PINS = []
-    OUTPUT_PINS = [11,12,13,14]
+OUTPUT_PINS = [11,12,13,14]
     #11 - relay block1 heater
     #12- relay block2 lighting
     #13 relay block3 pump
     #14 - relay block4  pump directional solenoid 1/0 
+I2c_BUS = '0x48'
     
 
 current_millis = lambda: int(round(time.time() * 1000))
@@ -66,6 +68,7 @@ def initPins():
     GPIO.setmode(GPIO.BCM)
     #GPIO.setup(INTPUT_PINS, GPIO.IN)
     GPIO.setup(OUTPUT_PINS, GPIO.OUT)
+    GPIO.output(OUTPUT_PINS,GPIO.HIGH)
     
     
 def initIC2():
@@ -86,32 +89,28 @@ def getDateTime():
 
 def getStatusB():
     status  = "0X00"
-    status |= GPIO.input(11)# heater
-    status |= GPIO.input(12)*10# lights
-    status |= GPIO.input(13)*100# pump
-    status |= GPIO.input(14)*1000# solenoid 
+    status |= 1 if GPIO.input(11) == GPIO.HIGH else 0# heater
+    status |= 2 if GPIO.input(12) == GPIO.HIGH else 0# heater
+    status |= 4 if GPIO.input(13) == GPIO.HIGH else 0# heater
+    status |= 8 if GPIO.input(14) == GPIO.HIGH else 0# heater
     return status     
     
-def getPH():
-    ph = 0
-    
-    return ph
-    
-def getTemp():
-    temp = 0
-    
-    return temp
-    
-def getWLevel():
-    wlevel = 0
-    
-    return wlevel
     
 def setStatus(status):
     pass
     
 def setTemp(temp):
     pass
+
+def I2CRead():
+    with SMBus(1) as bus:
+        # Read a block of 16 bytes from address 80, offset 0
+        block = bus.read_i2c_block_data(48, 0, 16)
+        # Returned value is a list of 16 bytes
+        print(block)
+
+
+    return [0,0,0]
 
 
 
@@ -136,12 +135,10 @@ def main():
         #data willl be collected every few seconds i suppose
         #REDO half of them need to be placed into a serial read functions sontosnds;njkn
         if(current_millis() > (POLL_INTERVAL + millis)):
-            temp = getTemp()
+            [temp, ph,wlevel] = I2CRead()
             date = getDateTime()
-            ph = getPH()
-            wLevel = getWLevel()
             status = getStatusB()
-            postData(date,ph,temp,status,wLevel,0)
+            #postData(date,ph,temp,status,wLevel,0)#implment later
             millis = current_millis()
             
         else:
