@@ -12,7 +12,7 @@ import time
 import csv
 import requests
 import RPi.GPIO as GPIO
-from smbus2 import SMBus, ic_msg 
+from smbus2 import SMBus 
 # https://pypi.org/project/smbus2/Library for I2C
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
 #https://pi4j.com/1.2/pins/model-3b-plus-rev1.html pinout 
@@ -71,9 +71,6 @@ def initPins():
     GPIO.output(OUTPUT_PINS,GPIO.HIGH)
     
     
-def initIC2():
-    #need library
-    pass
 
    
     
@@ -88,7 +85,7 @@ def getDateTime():
     return dt_string
 
 def getStatusB():
-    status  = "0X00"
+    status  = 0X00
     status |= 1 if GPIO.input(11) == GPIO.HIGH else 0# heater
     status |= 2 if GPIO.input(12) == GPIO.HIGH else 0# heater
     status |= 4 if GPIO.input(13) == GPIO.HIGH else 0# heater
@@ -104,8 +101,11 @@ def setTemp(temp):
 
 def I2CRead():
     with SMBus(1) as bus:
+	config = 0x8000 | 0x4000 | 0x0100 | 0x0080 | 0x0003
+	bus.write_byte_data(48, 0, 0x01)
+	bus.write_byte_data(48, 0, config)
         # Read a block of 16 bytes from address 80, offset 0
-        block = bus.read_i2c_block_data(48, 0, 16)
+        block = bus.read_i2c_block_data(0x48, 0, 16)
         # Returned value is a list of 16 bytes
         print(block)
 
@@ -127,7 +127,6 @@ def getData():
 
 def main():
     initPins()
-    initIC2()
     #get inital time
     start = current_millis()
     millis = start
