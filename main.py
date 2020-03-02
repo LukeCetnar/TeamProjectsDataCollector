@@ -13,6 +13,7 @@ import csv
 import requests
 import RPi.GPIO as GPIO
 from smbus2 import SMBus 
+import Adafruit_ADS1x15
 # https://pypi.org/project/smbus2/Library for I2C
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
 #https://pi4j.com/1.2/pins/model-3b-plus-rev1.html pinout 
@@ -56,9 +57,8 @@ OUTPUT_PINS = [11,12,13,14]
     #12- relay block2 lighting
     #13 relay block3 pump
     #14 - relay block4  pump directional solenoid 1/0 
-I2c_BUS = '0x48'
-from ADS1115 import ADS1115
-ads1115 = ADS1115()    
+
+   
 
 current_millis = lambda: int(round(time.time() * 1000))
 
@@ -101,14 +101,12 @@ def setTemp(temp):
     pass
 
 def I2CRead():
-    ads1115.set_channel()
-	ads1115.config_differential()
-	time.sleep(0.1)
-	adc = ads1115.read_adc()
-    print("Digital Value of Analog Input : %d "%(adc['r']))
-	print(" ********************************************* ")
-	time.sleep(0.8)
-
+    adc = Adafruit_ADS1x15.ADS1115()
+    values = [0]*4
+    for i in range(4):
+        # Read the specified ADC channel using the previously set gain value.
+        values[i] = adc.read_adc(i, gain=1)
+    print('| {0:>6} | {1:>6} | {2:>6} | {3:>6} |'.format(*values))
     return [0,0,0]
 
 
