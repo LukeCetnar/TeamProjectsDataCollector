@@ -57,7 +57,8 @@ OUTPUT_PINS = [11,12,13,14]
     #13 relay block3 pump
     #14 - relay block4  pump directional solenoid 1/0 
 I2c_BUS = '0x48'
-    
+from ADS1115 import ADS1115
+ads1115 = ADS1115()    
 
 current_millis = lambda: int(round(time.time() * 1000))
 
@@ -100,18 +101,15 @@ def setTemp(temp):
     pass
 
 def I2CRead():
-    with SMBus(1) as bus:
-	config = 0x8000 | 0x4000 | 0x0100 | 0x0080 | 0x0003
-	bus.write_byte_data(48, 0, 0x01)
-	bus.write_byte_data(48, 0, config)
-        # Read a block of 16 bytes from address 80, offset 0
-        block = bus.read_i2c_block_data(0x48, 0, 16)
-        # Returned value is a list of 16 bytes
-        print(block)
-
+    ads1115.set_channel()
+	ads1115.config_differential()
+	time.sleep(0.1)
+	adc = ads1115.read_adc()
+    print("Digital Value of Analog Input : %d "%(adc['r']))
+	print(" ********************************************* ")
+	time.sleep(0.8)
 
     return [0,0,0]
-
 
 
 
