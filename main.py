@@ -1,18 +1,18 @@
+#!/usr/bin/env python3
 '''
     File name: Main.py
     Author: Luke Cetnar
     Date created: 2/12/2020
     Date last modified: TBD
-    Python Version: 3.8
+    Python Version: 3.8+
 '''
-#//TODO..
+
 
 from datetime import datetime
 import time
 import csv
 import requests
 import RPi.GPIO as GPIO
-from smbus2 import SMBus 
 import Adafruit_ADS1x15
 import os
 import glob
@@ -29,8 +29,7 @@ def read_temp_raw():
     lines = f.readlines()
     f.close()
     return lines
-# https://pypi.org/project/smbus2/Library for I2C
-# https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
+#https://sourceforge.net/p/raspberry-gpio-python/wiki/BasicUsage/ Library for GPIO
 #https://pi4j.com/1.2/pins/model-3b-plus-rev1.html pinout 
 
 
@@ -73,10 +72,8 @@ GAIN = 1
     4: 1.024
     8: 0.512
     16: 0.256
-        }
-def scaleVoltage():
-        
-    return switcher.get(GAIN,0)/
+}
+
 
 
 # defining the api-endpoint  
@@ -86,12 +83,12 @@ API_ENDPOINT = "http://pastebin.com/api/api_post.php"
 API_KEY = "XXXXXXXXXXXXXXXXX"
   
 
-    #INPUT_PINS = []
+#INPUT_PINS = []
 OUTPUT_PINS = [11,12,13,14]
-    #11 - relay block1 heater
-    #12- relay block2 lighting
-    #13 relay block3 pump
-    #14 - relay block4  pump directional solenoid 1/0 
+#11 - relay block1 heater
+#12- relay block2 lighting
+#13 relay block3 pump
+#14 - relay block4  pump directional solenoid 1/0 
 
    
 
